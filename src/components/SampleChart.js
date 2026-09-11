@@ -15,12 +15,12 @@ import { Chart } from 'react-chartjs-2';
 const LEGEND_ITEMS = [
   { label: '매출', type: 'box', color: 'rgba(75, 132, 235, 0.6)' },
   { label: '합계', type: 'line', color: 'rgba(235, 94, 40, 1)', dash: [] },
-  { label: '목표치', type: 'line', color: 'rgba(60, 60, 60, 0.8)', dash: [6, 4] },
+  { label: '목표치', type: 'line', color: 'rgba(60, 60, 60, 0.8)', dash: [3, 2] },
 ];
 
 // chart.js's built-in legend has no way to draw a dashed line swatch
 // (pointStyle: 'line' always renders solid), so this plugin draws the
-// legend row itself in the space reserved by options.layout.padding.top.
+// legend row itself in the space reserved by the title's padding.bottom.
 const customLegendPlugin = {
   id: 'customLegend',
   afterDraw(chart) {
