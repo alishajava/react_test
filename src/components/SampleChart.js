@@ -9,9 +9,59 @@ import {
   PointElement,
   Title,
   Tooltip,
-  Legend,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
+
+const LEGEND_ITEMS = [
+  { label: '매출', type: 'box', color: 'rgba(75, 132, 235, 0.6)' },
+  { label: '합계', type: 'line', color: 'rgba(235, 94, 40, 1)', dash: [] },
+  { label: '목표치', type: 'line', color: 'rgba(60, 60, 60, 0.8)', dash: [6, 4] },
+];
+
+// chart.js's built-in legend has no way to draw a dashed line swatch
+// (pointStyle: 'line' always renders solid), so this plugin draws the
+// legend row itself in the space reserved by options.layout.padding.top.
+const customLegendPlugin = {
+  id: 'customLegend',
+  afterDraw(chart) {
+    const { ctx, chartArea } = chart;
+    const iconWidth = 20;
+    const iconTextGap = 6;
+    const gap = 20;
+    const y = chartArea.top - 12;
+
+    ctx.save();
+    ctx.font = '12px sans-serif';
+    ctx.textBaseline = 'middle';
+
+    const widths = LEGEND_ITEMS.map(
+      (item) => iconWidth + iconTextGap + ctx.measureText(item.label).width
+    );
+    const totalWidth = widths.reduce((a, b) => a + b, 0) + gap * (LEGEND_ITEMS.length - 1);
+    let x = chartArea.left + (chartArea.right - chartArea.left - totalWidth) / 2;
+
+    LEGEND_ITEMS.forEach((item, i) => {
+      if (item.type === 'box') {
+        ctx.fillStyle = item.color;
+        ctx.fillRect(x, y - 6, iconWidth, 12);
+      } else {
+        ctx.strokeStyle = item.color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash(item.dash);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + iconWidth, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.fillStyle = '#333';
+      ctx.fillText(item.label, x + iconWidth + iconTextGap, y);
+      x += widths[i] + gap;
+    });
+
+    ctx.restore();
+  },
+};
 
 ChartJS.register(
   CategoryScale,
@@ -23,7 +73,7 @@ ChartJS.register(
   PointElement,
   Title,
   Tooltip,
-  Legend
+  customLegendPlugin
 );
 
 const monthlySales = [12, 19, 8, 15, 22, 17];
@@ -52,7 +102,6 @@ const data = {
       borderColor: 'rgba(235, 94, 40, 1)',
       backgroundColor: 'rgba(235, 94, 40, 1)',
       borderDash: [],
-      pointStyle: 'line',
       tension: 0.2,
       yAxisID: 'y1',
       order: 0,
@@ -64,7 +113,6 @@ const data = {
       borderColor: 'rgba(60, 60, 60, 0.8)',
       backgroundColor: 'rgba(60, 60, 60, 0.8)',
       borderDash: [6, 4],
-      pointStyle: 'line',
       pointRadius: 0,
       yAxisID: 'y',
       order: 1,
@@ -75,8 +123,8 @@ const data = {
 const options = {
   responsive: true,
   plugins: {
-    legend: { position: 'top', labels: { usePointStyle: true } },
-    title: { display: true, text: '월별 매출' },
+    legend: { display: false },
+    title: { display: true, text: '월별 매출', padding: { top: 6, bottom: 26 } },
   },
   scales: {
     y: {
