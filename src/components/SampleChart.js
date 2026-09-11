@@ -52,6 +52,7 @@ const data = {
       borderColor: 'rgba(235, 94, 40, 1)',
       backgroundColor: 'rgba(235, 94, 40, 1)',
       borderDash: [],
+      pointStyle: 'line',
       tension: 0.2,
       yAxisID: 'y1',
       order: 0,
@@ -61,7 +62,9 @@ const data = {
       label: '목표치',
       data: monthlySales.map(() => target),
       borderColor: 'rgba(60, 60, 60, 0.8)',
+      backgroundColor: 'rgba(60, 60, 60, 0.8)',
       borderDash: [6, 4],
+      pointStyle: 'line',
       pointRadius: 0,
       yAxisID: 'y',
       order: 1,
@@ -72,7 +75,7 @@ const data = {
 const options = {
   responsive: true,
   plugins: {
-    legend: { position: 'top' },
+    legend: { position: 'top', labels: { usePointStyle: true } },
     title: { display: true, text: '월별 매출' },
   },
   scales: {
