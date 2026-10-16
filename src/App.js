@@ -3,6 +3,13 @@ import './App.css';
 import SampleChart from './components/SampleChart';
 import SampleGrid from './components/SampleGrid';
 import SimplePage from './components/SimplePage';
+import EffectPage from './components/EffectPage';
+
+const PAGES = {
+  home: '홈',
+  simple: '기본 기능 예제',
+  effect: 'useEffect 예제',
+};
 
 function App() {
   const [page, setPage] = useState('home');
@@ -11,15 +18,14 @@ function App() {
     <div className="App">
       <h1>리액트 테스트 합니다.</h1>
       <nav style={{ marginBottom: 24 }}>
-        <button onClick={() => setPage('home')} disabled={page === 'home'}>
-          홈
-        </button>
-        <button onClick={() => setPage('simple')} disabled={page === 'simple'}>
-          기본 기능 예제
-        </button>
+        {Object.entries(PAGES).map(([key, label]) => (
+          <button key={key} onClick={() => setPage(key)} disabled={page === key}>
+            {label}
+          </button>
+        ))}
       </nav>
 
-      {page === 'home' ? (
+      {page === 'home' && (
         <>
           <section style={{ maxWidth: 600, margin: '0 auto 40px' }}>
             <SampleChart />
@@ -28,9 +34,9 @@ function App() {
             <SampleGrid />
           </section>
         </>
-      ) : (
-        <SimplePage />
       )}
+      {page === 'simple' && <SimplePage />}
+      {page === 'effect' && <EffectPage />}
     </div>
   );
 }
