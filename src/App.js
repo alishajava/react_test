@@ -4,11 +4,13 @@ import SampleChart from './components/SampleChart';
 import SampleGrid from './components/SampleGrid';
 import SimplePage from './components/SimplePage';
 import EffectPage from './components/EffectPage';
+import EffectPatternsPage from './components/EffectPatternsPage';
 
 const PAGES = {
   home: '홈',
   simple: '기본 기능 예제',
   effect: 'useEffect 예제',
+  patterns: 'useEffect 패턴 모음',
 };
 
 function App() {
@@ -37,6 +39,7 @@ function App() {
       )}
       {page === 'simple' && <SimplePage />}
       {page === 'effect' && <EffectPage />}
+      {page === 'patterns' && <EffectPatternsPage />}
     </div>
   );
 }
