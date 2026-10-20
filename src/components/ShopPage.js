@@ -12,6 +12,10 @@ function formatPrice(price) {
   return price.toLocaleString() + '원';
 }
 
+function cartTotal(cart) {
+  return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
 function ProductCard({ product, onAddToCart }) {
   return (
     <div
@@ -47,8 +51,153 @@ function CartItem({ item, onChangeQty, onRemove }) {
   );
 }
 
+// 1) 상품 목록 + 장바구니 화면 ------------------------------------------------
+
+function ShoppingView({ cart, onAddToCart, onChangeQty, onRemove, onCheckout }) {
+  const total = cartTotal(cart);
+
+  return (
+    <>
+      <h3>상품 목록</h3>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+          gap: 12,
+          marginBottom: 32,
+        }}
+      >
+        {PRODUCTS.map((product) => (
+          <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
+        ))}
+      </div>
+
+      <h3>장바구니</h3>
+      {cart.length === 0 ? (
+        <p>장바구니가 비어있어요.</p>
+      ) : (
+        <>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {cart.map((item) => (
+              <CartItem
+                key={item.id}
+                item={item}
+                onChangeQty={onChangeQty}
+                onRemove={onRemove}
+              />
+            ))}
+          </ul>
+          <p style={{ fontWeight: 'bold', textAlign: 'right' }}>
+            총 합계: {formatPrice(total)}
+          </p>
+          <div style={{ textAlign: 'right' }}>
+            <button onClick={onCheckout}>결제하기</button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+// 2) 주문서 작성 화면 ---------------------------------------------------------
+
+function CheckoutView({ cart, onPay, onCancel }) {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [paying, setPaying] = useState(false);
+  const total = cartTotal(cart);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setPaying(true);
+    // 실제 결제 대신, 처리 중인 느낌만 흉내냄
+    setTimeout(() => {
+      onPay({ name, phone });
+    }, 800);
+  }
+
+  return (
+    <>
+      <h3>주문/결제</h3>
+
+      <ul style={{ listStyle: 'none', padding: 0 }}>
+        {cart.map((item) => (
+          <li key={item.id} style={{ display: 'flex', marginBottom: 4 }}>
+            <span style={{ flex: 1 }}>
+              {item.emoji} {item.name} x {item.qty}
+            </span>
+            <span>{formatPrice(item.price * item.qty)}</span>
+          </li>
+        ))}
+      </ul>
+      <p style={{ fontWeight: 'bold', textAlign: 'right' }}>
+        결제 금액: {formatPrice(total)}
+      </p>
+
+      <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
+        <div style={{ marginBottom: 8 }}>
+          <label>
+            받는 분{' '}
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              disabled={paying}
+            />
+          </label>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <label>
+            연락처{' '}
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+              disabled={paying}
+            />
+          </label>
+        </div>
+        <button type="button" onClick={onCancel} disabled={paying}>
+          취소
+        </button>{' '}
+        <button type="submit" disabled={paying}>
+          {paying ? '결제 처리 중...' : `${formatPrice(total)} 결제하기`}
+        </button>
+      </form>
+    </>
+  );
+}
+
+// 3) 결제 완료 화면 -----------------------------------------------------------
+
+function CompleteView({ order, onContinueShopping }) {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <h3>✅ 결제가 완료됐어요!</h3>
+      <p>주문번호: {order.id}</p>
+      <p>
+        {order.name}님, {formatPrice(order.total)} 결제가 정상적으로 처리됐습니다.
+      </p>
+      <ul style={{ listStyle: 'none', padding: 0, display: 'inline-block', textAlign: 'left' }}>
+        {order.items.map((item) => (
+          <li key={item.id}>
+            {item.emoji} {item.name} x {item.qty}
+          </li>
+        ))}
+      </ul>
+      <div>
+        <button onClick={onContinueShopping}>쇼핑 계속하기</button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
 function ShopPage() {
   const [cart, setCart] = useState([]);
+  const [step, setStep] = useState('shopping'); // 'shopping' | 'checkout' | 'complete'
+  const [order, setOrder] = useState(null);
 
   function handleAddToCart(product) {
     setCart((prevCart) => {
@@ -74,45 +223,46 @@ function ShopPage() {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   }
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  function handlePay({ name }) {
+    setOrder({
+      id: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+      name,
+      items: cart,
+      total: cartTotal(cart),
+    });
+    setCart([]);
+    setStep('complete');
+  }
+
+  function handleContinueShopping() {
+    setOrder(null);
+    setStep('shopping');
+  }
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'left' }}>
       <h2>미니 쇼핑몰</h2>
 
-      <h3>상품 목록</h3>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-          gap: 12,
-          marginBottom: 32,
-        }}
-      >
-        {PRODUCTS.map((product) => (
-          <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
-        ))}
-      </div>
+      {step === 'shopping' && (
+        <ShoppingView
+          cart={cart}
+          onAddToCart={handleAddToCart}
+          onChangeQty={handleChangeQty}
+          onRemove={handleRemove}
+          onCheckout={() => setStep('checkout')}
+        />
+      )}
 
-      <h3>장바구니</h3>
-      {cart.length === 0 ? (
-        <p>장바구니가 비어있어요.</p>
-      ) : (
-        <>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {cart.map((item) => (
-              <CartItem
-                key={item.id}
-                item={item}
-                onChangeQty={handleChangeQty}
-                onRemove={handleRemove}
-              />
-            ))}
-          </ul>
-          <p style={{ fontWeight: 'bold', textAlign: 'right' }}>
-            총 합계: {formatPrice(total)}
-          </p>
-        </>
+      {step === 'checkout' && (
+        <CheckoutView
+          cart={cart}
+          onPay={handlePay}
+          onCancel={() => setStep('shopping')}
+        />
+      )}
+
+      {step === 'complete' && (
+        <CompleteView order={order} onContinueShopping={handleContinueShopping} />
       )}
     </div>
   );
