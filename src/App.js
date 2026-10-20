@@ -5,12 +5,14 @@ import SampleGrid from './components/SampleGrid';
 import SimplePage from './components/SimplePage';
 import EffectPage from './components/EffectPage';
 import EffectPatternsPage from './components/EffectPatternsPage';
+import ShopPage from './components/ShopPage';
 
 const PAGES = {
   home: '홈',
   simple: '기본 기능 예제',
   effect: 'useEffect 예제',
   patterns: 'useEffect 패턴 모음',
+  shop: '미니 쇼핑몰',
 };
 
 function App() {
@@ -40,6 +42,7 @@ function App() {
       {page === 'simple' && <SimplePage />}
       {page === 'effect' && <EffectPage />}
       {page === 'patterns' && <EffectPatternsPage />}
+      {page === 'shop' && <ShopPage />}
     </div>
   );
 }
