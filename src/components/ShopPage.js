@@ -1,12 +1,14 @@
 import { useState } from 'react';
 
 const PRODUCTS = [
-  { id: 1, name: '티셔츠', price: 19000, emoji: '👕' },
-  { id: 2, name: '청바지', price: 45000, emoji: '👖' },
-  { id: 3, name: '운동화', price: 68000, emoji: '👟' },
-  { id: 4, name: '모자', price: 15000, emoji: '🧢' },
-  { id: 5, name: '가방', price: 52000, emoji: '🎒' },
+  { id: 1, name: '티셔츠', price: 19000, emoji: '👕', category: '의류' },
+  { id: 2, name: '청바지', price: 45000, emoji: '👖', category: '의류' },
+  { id: 3, name: '운동화', price: 68000, emoji: '👟', category: '신발' },
+  { id: 4, name: '모자', price: 15000, emoji: '🧢', category: '잡화' },
+  { id: 5, name: '가방', price: 52000, emoji: '🎒', category: '잡화' },
 ];
+
+const CATEGORIES = ['전체', '의류', '신발', '잡화'];
 
 function formatPrice(price) {
   return price.toLocaleString() + '원';
@@ -54,23 +56,54 @@ function CartItem({ item, onChangeQty, onRemove }) {
 // 1) 상품 목록 + 장바구니 화면 ------------------------------------------------
 
 function ShoppingView({ cart, onAddToCart, onChangeQty, onRemove, onCheckout }) {
+  const [keyword, setKeyword] = useState('');
+  const [category, setCategory] = useState('전체');
   const total = cartTotal(cart);
+
+  const visibleProducts = PRODUCTS.filter(
+    (product) =>
+      product.name.includes(keyword) &&
+      (category === '전체' || product.category === category)
+  );
 
   return (
     <>
       <h3>상품 목록</h3>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-          gap: 12,
-          marginBottom: 32,
-        }}
-      >
-        {PRODUCTS.map((product) => (
-          <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
+
+      <input
+        value={keyword}
+        onChange={(e) => setKeyword(e.target.value)}
+        placeholder="상품 검색 (예: 티)"
+        style={{ marginBottom: 8, width: '100%', boxSizing: 'border-box' }}
+      />
+      <div style={{ marginBottom: 16 }}>
+        {CATEGORIES.map((name) => (
+          <button
+            key={name}
+            onClick={() => setCategory(name)}
+            disabled={category === name}
+          >
+            {name}
+          </button>
         ))}
       </div>
+
+      {visibleProducts.length === 0 ? (
+        <p style={{ marginBottom: 32 }}>조건에 맞는 상품이 없어요.</p>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: 12,
+            marginBottom: 32,
+          }}
+        >
+          {visibleProducts.map((product) => (
+            <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
+          ))}
+        </div>
+      )}
 
       <h3>장바구니</h3>
       {cart.length === 0 ? (
